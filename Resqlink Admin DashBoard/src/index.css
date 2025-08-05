@@ -1,0 +1,190 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 210 30% 98%;
+    --foreground: 215 25% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 15%;
+
+    --primary: 0 100% 40%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 0 100% 35%;
+
+    --secondary: 142 76% 36%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 142 15% 95%;
+    --muted-foreground: 142 15% 55%;
+
+    --accent: 0 70% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --warning: 35 85% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --success: 140 50% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 210 100% 50%;
+
+    --radius: 0.75rem;
+
+    /* Red and green theme colors */
+    --gradient-primary: linear-gradient(135deg, hsl(0, 100%, 40%), hsl(0, 90%, 45%));
+    --gradient-secondary: linear-gradient(135deg, hsl(142, 76%, 36%), hsl(142, 70%, 40%));
+    --gradient-success: linear-gradient(135deg, hsl(140, 50%, 45%), hsl(150, 45%, 40%));
+    --gradient-warning: linear-gradient(135deg, hsl(35, 85%, 50%), hsl(40, 80%, 55%));
+    
+    --shadow-professional: 0 2px 8px hsl(25, 25%, 15%, 0.15);
+    --shadow-card: 0 1px 3px hsl(25, 25%, 15%, 0.1);
+    --shadow-alert: 0 4px 12px hsl(0, 75%, 55%, 0.25);
+    
+    --animation-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    --animation-fade-in: fadeIn 0.5s ease-out;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 215 28% 8%;
+    --foreground: 210 40% 98%;
+
+    --card: 215 28% 12%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 215 28% 12%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 0 100% 45%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 0 100% 40%;
+
+    --secondary: 20 20% 15%;
+    --secondary-foreground: 20 15% 85%;
+
+    --muted: 20 20% 18%;
+    --muted-foreground: 20 15% 65%;
+
+    --accent: 35 65% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --warning: 35 80% 55%;
+    --warning-foreground: 0 0% 100%;
+
+    --success: 140 45% 50%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 217 32% 18%;
+    --input: 217 32% 18%;
+    --ring: 210 100% 55%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}
+
+@layer utilities {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  
+  .gradient-danger {
+    background: var(--gradient-danger);
+  }
+  
+  .gradient-success {
+    background: var(--gradient-success);
+  }
+  
+  .gradient-warning {
+    background: var(--gradient-warning);
+  }
+  
+  .shadow-professional {
+    box-shadow: var(--shadow-professional);
+  }
+  
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  
+  .shadow-alert {
+    box-shadow: var(--shadow-alert);
+  }
+  
+  .animate-pulse-custom {
+    animation: var(--animation-pulse);
+  }
+  
+  .animate-fade-in {
+    animation: var(--animation-fade-in);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

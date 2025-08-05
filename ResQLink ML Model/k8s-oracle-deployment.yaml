@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: landslide-ml-app
+  labels:
+    app: landslide-ml-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: landslide-ml-app
+  template:
+    metadata:
+      labels:
+        app: landslide-ml-app
+    spec:
+      containers:
+      - name: landslide-ml-app
+        image: your-registry/landslide-ml-app:latest
+        ports:
+        - containerPort: 10000
+        env:
+        - name: PORT
+          value: "10000"
+        - name: SUPABASE_URL
+          value: "https://axhllqkehjppzhjyjumg.supabase.co"
+        - name: SUPABASE_KEY
+          value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF4aGxscWtlaGpwcHpoanlqdW1nIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MjIxODAxNCwiZXhwIjoyMDY3Nzk0MDE0fQ.m8Ye09Nt7pZf4cIdIQpNoC0hMzJXHl83KoiLgUSXy4A"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 10000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 10000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: app-logs
+          mountPath: /app/logs
+      volumes:
+      - name: app-logs
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: landslide-ml-service
+  annotations:
+    service.beta.kubernetes.io/oci-load-balancer-shape: "flexible"
+    service.beta.kubernetes.io/oci-load-balancer-shape-flex-min: "10"
+    service.beta.kubernetes.io/oci-load-balancer-shape-flex-max: "100"
+spec:
+  selector:
+    app: landslide-ml-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 10000
+  type: LoadBalancer 

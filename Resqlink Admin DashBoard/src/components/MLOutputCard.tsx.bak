@@ -1,0 +1,217 @@
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { AlertTriangle, Shield, AlertCircle, Brain } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+interface SensorMLData {
+  notification: string;
+  alert: string;
+  landslide_risk: string;
+  predicted_soil_moisture: number;
+  predicted_pore_pressure: number;
+  risk_probability: number;
+  created_at: string;
+}
+
+interface MLOutputCardProps {
+  className?: string;
+  showHeader?: boolean;
+}
+
+const MLOutputCard = ({ className, showHeader = true }: MLOutputCardProps) => {
+  const [sensorData, setSensorData] = useState<SensorMLData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('sensor_data')
+          .select('notification, alert, landslide_risk, predicted_soil_moisture, predicted_pore_pressure, risk_probability, created_at')
+          .order('created_at', { ascending: false })
+          .limit(20);
+
+        if (error) throw error;
+        if (data) {
+          setSensorData(data.reverse());
+        }
+      } catch (error) {
+        console.error('Error fetching sensor data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Initial fetch
+    fetchData();
+
+    // Set up real-time subscription
+    const subscription = supabase
+      .channel('sensor_data_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'sensor_data',
+        },
+        (payload) => {
+          setSensorData(currentData => {
+            const newData = [...currentData, payload.new as SensorMLData];
+            if (newData.length > 20) newData.shift();
+            return newData;
+          });
+        }
+      )
+      .subscribe();
+
+    // Set up interval for regular fetches
+    const interval = setInterval(fetchData, 5000);
+
+    return () => {
+      clearInterval(interval);
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  if (isLoading || sensorData.length === 0) {
+    return (
+      <Card className={cn("shadow-card", className)}>
+        {showHeader && (
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Brain className="h-5 w-5 text-primary" />
+              <span>ML Prediction Status</span>
+            </CardTitle>
+          </CardHeader>
+        )}
+        <CardContent>
+          <div className="animate-pulse">
+            <div className="h-6 bg-muted rounded mb-4"></div>
+            <div className="h-4 bg-muted rounded mb-2"></div>
+            <div className="h-4 bg-muted rounded w-3/4"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const latestData = sensorData[sensorData.length - 1];
+  const labels = sensorData.map(data => new Date(data.created_at).toLocaleTimeString());
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+      },
+    },
+  };
+
+  const moistureData = {
+    labels,
+    datasets: [
+      {
+        label: 'Predicted Soil Moisture',
+        data: sensorData.map(data => data.predicted_soil_moisture),
+        borderColor: 'rgb(53, 162, 235)',
+        backgroundColor: 'rgba(53, 162, 235, 0.5)',
+        tension: 0.3,
+      },
+    ],
+  };
+
+  const pressureData = {
+    labels,
+    datasets: [
+      {
+        label: 'Predicted Pore Pressure',
+        data: sensorData.map(data => data.predicted_pore_pressure),
+        borderColor: 'rgb(75, 192, 192)',
+        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+        tension: 0.3,
+      },
+    ],
+  };
+
+  const riskData = {
+    labels,
+    datasets: [
+      {
+        label: 'Risk Probability',
+        data: sensorData.map(data => data.risk_probability),
+        borderColor: 'rgb(255, 99, 132)',
+        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        tension: 0.3,
+      },
+    ],
+  };
+
+  return (
+    <Card className={cn("w-full", className)}>
+      {showHeader && (
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Brain className="h-5 w-5 text-primary" />
+            </div>
+            <span>ML Predictions & Alerts</span>
+          </CardTitle>
+        </CardHeader>
+      )}
+
+      <CardContent className="space-y-8">
+        {/* Current Status */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 border rounded-lg bg-background">
+            <h3 className="font-medium mb-2">Notification</h3>
+            <p className="text-sm">{latestData.notification}</p>
+          </div>
+          <div className="p-4 border rounded-lg bg-background">
+            <h3 className="font-medium mb-2">Alert</h3>
+            <p className="text-sm">{latestData.alert}</p>
+          </div>
+          <div className="p-4 border rounded-lg bg-background">
+            <h3 className="font-medium mb-2">Landslide Risk</h3>
+            <p className="text-sm">{latestData.landslide_risk}</p>
+          </div>
+        </div>
+
+        {/* Graphs */}
+        <div className="space-y-6">
+          <div className="h-[300px]">
+            <h3 className="font-medium mb-4">Soil Moisture Prediction</h3>
+            <Line options={chartOptions} data={moistureData} />
+          </div>
+          <div className="h-[300px]">
+            <h3 className="font-medium mb-4">Pore Pressure Prediction</h3>
+            <Line options={chartOptions} data={pressureData} />
+          </div>
+          <div className="h-[300px]">
+            <h3 className="font-medium mb-4">Risk Probability</h3>
+            <Line options={chartOptions} data={riskData} />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default MLOutputCard;
